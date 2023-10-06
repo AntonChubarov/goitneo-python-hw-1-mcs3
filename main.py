@@ -4,13 +4,13 @@ import datetime
 
 
 def load_users_from_file(path):
-    with open(path, 'r') as fh:
+    with open(path, 'r', encoding='utf-8') as fh:
         csv_reader = csv.DictReader(fh)
         data = []
-    
+
         for row in csv_reader:
-            row['birthday'] = datetime.datetime.strptime(row['birthday'], "%Y-%m-%d")
-            
+            row['birthday'] = datetime.datetime.strptime(row['birthday'], '%Y-%m-%d')
+
             data.append(row)
 
     return data
@@ -52,15 +52,16 @@ def get_birthdays_per_week(users):
     sorted_days = list(filter(lambda day: day in birthday_days, sorted_days))
 
     for day in sorted_days:
-        print('{day}: {names}'.format(day=day, names=', '.join(users_to_congratulate[day])))
+        names = ', '.join(users_to_congratulate[day])
+        print(f'{day}: {names}')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--file', type=str, help='Path to the csv file with users data', default='./data/users.csv')
-    
+
     args = parser.parse_args()
 
-    users = load_users_from_file(args.file)
+    users_list = load_users_from_file(args.file)
 
-    get_birthdays_per_week(users)
+    get_birthdays_per_week(users_list)
