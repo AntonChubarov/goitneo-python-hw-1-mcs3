@@ -3,6 +3,9 @@ import csv
 import datetime
 
 
+days_in_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+
 def load_users_from_file(path):
     with open(path, 'r') as fh:
         csv_reader = csv.DictReader(fh)
@@ -42,8 +45,14 @@ def get_birthdays_per_week(users):
 
             users_to_congratulate[day_name].append(name)
 
-    for day, names in users_to_congratulate.items():
-        print('{day}: {names}'.format(day=day, names=', '.join(names)))
+    birthday_days = list(users_to_congratulate.keys())
+    current_day_name = today.strftime("%A")
+    current_day_order_index = days_in_order.index(current_day_name)
+    sorted_days = days_in_order[current_day_order_index:] + days_in_order[:current_day_order_index]
+    sorted_days = list(filter(lambda day: day in birthday_days, sorted_days))
+
+    for day in sorted_days:
+        print('{day}: {names}'.format(day=day, names=', '.join(users_to_congratulate[day])))
 
 
 if __name__ == '__main__':
