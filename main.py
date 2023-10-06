@@ -31,7 +31,12 @@ def get_birthdays_per_week(users):
 
         delta_days = (birthday_this_year - today).days
 
-        if delta_days < 7:
+        # TODO need to be tested on Monday
+        days_to_period_end = 7
+        if today.strftime('%A') == 'Monday':
+            days_to_period_end = 5
+
+        if delta_days < days_to_period_end:
             day_name = birthday_this_year.strftime('%A')
 
             if day_name in ('Saturday', 'Sunday'):
