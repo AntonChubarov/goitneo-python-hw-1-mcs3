@@ -20,6 +20,7 @@ def load_contacts():
     with open(contacts_file_name, "r") as fh:
         contacts = json.load(fh)
 
+
 def save_contacts():
     with open(contacts_file_name, "w") as fh:
         json.dump(contacts, fh, indent=4)
@@ -32,21 +33,36 @@ def greet():
 def add_contact(name: str, phone: str):
     if name in contacts:
         return f"Name {name} already exists. Use command \"change\" to update"
-    
+
     contacts[name] = phone
     return f"{name} was added to your contacts"
 
 
-def change_contact():
-    pass
+def change_contact(name: str, phone: str):
+    if name not in contacts:
+        return f"There is no {name} in contacts. Use command \"add\" to create"
+
+    contacts[name] = phone
+    return f"{name}'s contact was updated"
 
 
-def show_phone():
-    pass
+def show_phone(name: str):
+    if name not in contacts:
+        return f"There is no {name} in contacts. Use command \"add\" to create"
+    
+    return contacts[name]
 
 
 def show_all():
-    pass
+    if len(contacts) == 0:
+        return "You have no saved contacts yet"
+    
+    contacts_to_print = ""
+
+    for name, phone in contacts.items():
+        contacts_to_print += name + " " + phone + "\n"
+
+    return contacts_to_print
 
 
 def before_exit():
@@ -59,7 +75,7 @@ def on_startup():
 
 def command_handler(command: dict):
     cmd = command['command']
-    
+
     if cmd == 'exit':
         print("Shutting down...")
         before_exit()
@@ -68,6 +84,12 @@ def command_handler(command: dict):
         return greet()
     elif cmd == "add":
         return add_contact(command['name'], command['phone'])
+    elif cmd == "change":
+        return change_contact(command['name'], command['phone'])
+    elif cmd == "phone":
+        return show_phone(command['name'])
+    elif cmd == "all":
+        return show_all()
     else:
         return f'Unknown command {cmd}. Try again'
 
@@ -75,7 +97,7 @@ def command_handler(command: dict):
 def command_parser(user_input: str):
     if user_input == '':
         return None
-    
+
     command_components = user_input.split()
     command = command_components[0]
     name = ''

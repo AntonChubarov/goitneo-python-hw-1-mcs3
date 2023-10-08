@@ -72,7 +72,7 @@ def get_birthdays_per_week(users: list[dict[str, datetime.date]]):
     """
     today = datetime.datetime.today().date()
 
-    users_to_congratulate = {}
+    users_to_congratulate: dict[str, list] = {}
 
     for user in users:
         name = user['name']
