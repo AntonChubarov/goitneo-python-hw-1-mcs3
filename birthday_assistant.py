@@ -1,3 +1,11 @@
+"""
+This module contains get_birthdays_per_week function, which shows your
+coleagues that should be presented this week.
+
+Author: Anton Chubarov
+Date: October 16, 2023
+"""
+
 import argparse
 import csv
 import datetime
@@ -79,13 +87,8 @@ def get_birthdays_per_week(users: list[dict[str, datetime.date]]):
         birthday = user['birthday'].date()
         birthday_this_year = birthday.replace(year=today.year)
 
-        if birthday_this_year < today:
-            birthday_this_year = birthday_this_year.replace(
-                year=today.year + 1)
-
         delta_days = (birthday_this_year - today).days
 
-        # TODO need to be tested on Monday
         days_to_period_start, days_to_period_end = 0, 7
         if today.strftime('%A') == 'Monday':
             days_to_period_start, days_to_period_end = -2, 5
