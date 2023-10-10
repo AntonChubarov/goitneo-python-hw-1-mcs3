@@ -26,11 +26,11 @@ def save_contacts():
         json.dump(contacts, fh, indent=4)
 
 
-def greet():
-    print('How can I help you?')
+def greet() -> str:
+    return 'How can I help you?'
 
 
-def add_contact(name: str, phone: str):
+def add_contact(name: str, phone: str) -> str:
     if name in contacts:
         return f"Name {name} already exists. Use command \"change\" to update"
 
@@ -38,7 +38,7 @@ def add_contact(name: str, phone: str):
     return f"{name} was added to your contacts"
 
 
-def change_contact(name: str, phone: str):
+def change_contact(name: str, phone: str) -> str:
     if name not in contacts:
         return f"There is no {name} in contacts. Use command \"add\" to create"
 
@@ -46,14 +46,14 @@ def change_contact(name: str, phone: str):
     return f"{name}'s contact was updated"
 
 
-def show_phone(name: str):
+def show_phone(name: str) -> str:
     if name not in contacts:
         return f"There is no {name} in contacts. Use command \"add\" to create"
     
     return contacts[name]
 
 
-def show_all():
+def show_all() -> str:
     if len(contacts) == 0:
         return "You have no saved contacts yet"
     
@@ -73,14 +73,10 @@ def on_startup():
     load_contacts()
 
 
-def command_handler(command: dict):
+def command_handler(command: dict) -> str:
     cmd = command['command']
 
-    if cmd == 'exit':
-        print("Shutting down...")
-        before_exit()
-        sys.exit(0)
-    elif cmd == "hello":
+    if cmd == "hello":
         return greet()
     elif cmd == "add":
         return add_contact(command['name'], command['phone'])
@@ -91,7 +87,7 @@ def command_handler(command: dict):
     elif cmd == "all":
         return show_all()
     else:
-        return f'Unknown command {cmd}. Try again'
+        return f'Invalid command.'
 
 
 def command_parser(user_input: str):
@@ -99,7 +95,7 @@ def command_parser(user_input: str):
         return None
 
     command_components = user_input.split()
-    command = command_components[0]
+    command = command_components[0].lower()
     name = ''
     phone = ''
 
@@ -112,21 +108,25 @@ def command_parser(user_input: str):
     return {'command': command, 'name': name, 'phone': phone}
 
 
-def run():
+def main():
     while True:
         user_input = input("console bot >>> ")
         command = command_parser(user_input)
         if command is None:
             print('No command was entered. Try again')
+        elif command['command'] in ('exit', 'q', 'quit', 'close'):
+            before_exit()
+            break
         message = command_handler(command)
         if message:
             print(message)
+
+    print("Good bye!")
 
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, system_signal_handler)
     signal.signal(signal.SIGTERM, system_signal_handler)
-    signal.signal(signal.SIGBREAK, system_signal_handler)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--file', type=str,
@@ -138,4 +138,4 @@ if __name__ == '__main__':
 
     on_startup()
 
-    run()
+    main()

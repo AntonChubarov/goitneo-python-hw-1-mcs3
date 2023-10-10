@@ -1,14 +1,17 @@
 """
-This module contains get_birthdays_per_week function, which shows your
-coleagues that should be presented this week.
+This module contains get_birthdays_per_week function which selects your
+coleagues that should be congratulated this week.
 
 Author: Anton Chubarov
-Date: October 16, 2023
+Date: October 10, 2023
 """
 
 import argparse
 import csv
 import datetime
+
+
+EXPECTED_COLUMNS = ['name', 'birthday']
 
 
 def load_users_from_file(path: str) -> list[dict[str, datetime.date]]:
@@ -29,7 +32,7 @@ def load_users_from_file(path: str) -> list[dict[str, datetime.date]]:
         FileNotFoundError: If the specified file at 'path' does not exist.
         csv.Error: If there is an issue with reading the CSV file.
         ValueError: If the 'birthday' column in the CSV file is not in the
-        correct format.
+        correct format, or CSV file hasn't required fields.
 
     Example:
         If the CSV file at 'path' contains the following data:
@@ -41,17 +44,43 @@ def load_users_from_file(path: str) -> list[dict[str, datetime.date]]:
         [{'name': 'Alice Smith', 'birthday': datetime.date(1990, 5, 15)},
          {'name': 'Bob Jones', 'birthday': datetime.date(1985, 12, 10)}]
     """
-    with open(path, 'r', encoding='utf-8') as fh:
-        csv_reader = csv.DictReader(fh)
-        data = []
 
-        for row in csv_reader:
-            row['birthday'] = datetime.datetime.strptime(
-                row['birthday'], '%Y-%m-%d')
+    users = []
 
-            data.append(row)
+    if not path.endswith('.csv'):
+        print(f"{path} is not a CSV file")
+        return users
 
-    return data
+    try:
+        with open(path, 'r', encoding='utf-8') as fh:
+            csv_reader = csv.DictReader(fh)
+
+            if not set(EXPECTED_COLUMNS).issubset(set(csv_reader.fieldnames)):
+                raise ValueError(f"""file {path} does not have the expected
+                                 columns \"name\" and \"birthday\"""")
+
+            row_number = 0
+
+            for row in csv_reader:
+                row_number += 1
+
+                try:
+                    row['birthday'] = datetime.datetime.strptime(
+                        row['birthday'], '%Y-%m-%d')
+                except ValueError as e:
+                    print(f"Skipping row {row_number} {row}: {e}")
+                    continue
+
+                users.append(row)
+
+    except FileNotFoundError:
+        print(f"File {path} not found")
+    except csv.Error as e:
+        print(f"CSV error: {e}")
+    except ValueError as ve:
+        print(f"CSV structure validation failed: {ve}")
+
+    return users
 
 
 def get_birthdays_per_week(users: list[dict[str, datetime.date]]):
@@ -112,19 +141,27 @@ def get_birthdays_per_week(users: list[dict[str, datetime.date]]):
     sorted_days = list(filter(
         lambda day: day in birthday_days, sorted_days))
 
+    dayly_sorted_users_to_congratulate: dict[str, list] = {}
+
     for day in sorted_days:
         names = ', '.join(users_to_congratulate[day])
-        print(f'{day}: {names}')
+        dayly_sorted_users_to_congratulate[day] = names
+
+    return dayly_sorted_users_to_congratulate
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--file', type=str,
-                        help='Path to the csv file with users data',
-                        default='./data/users.csv')
+    parser.add_argument('-f', '--file', type=str,
+                        help="""path to the csv file with users data. When not
+                        specified ./data/users.csv will be used""",
+                        default='./data/users.csv'
+                        )
 
     args = parser.parse_args()
 
-    users_list = load_users_from_file(args.file)
+    users = load_users_from_file(args.file)
 
-    get_birthdays_per_week(users_list)
+    users_to_congratulate = get_birthdays_per_week(users)
+    for name, users in users_to_congratulate.items():
+        print(f'{name}: {users}')
