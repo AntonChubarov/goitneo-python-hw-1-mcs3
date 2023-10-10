@@ -150,7 +150,7 @@ def get_birthdays_per_week(users: list[dict[str, datetime.date]]):
     return dayly_sorted_users_to_congratulate
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', type=str,
                         help="""path to the csv file with users data. When not
@@ -161,7 +161,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     users = load_users_from_file(args.file)
-
     users_to_congratulate = get_birthdays_per_week(users)
+    
     for name, users in users_to_congratulate.items():
         print(f'{name}: {users}')
+
+
+if __name__ == '__main__':
+    main()
