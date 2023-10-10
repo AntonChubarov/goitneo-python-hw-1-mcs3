@@ -4,24 +4,29 @@ import signal
 import sys
 
 
-contacts_file_name = None
+contacts_file_name: str = None
 contacts = {}
 
 
-def system_signal_handler(sig, frame):
+def handle_system_signal(sig, frame):
     _, _ = sig, frame
     print("\nTermination signal received. Shutting down...")
-    before_exit()
-    sys.exit(0)
+    shutdown()
 
 
 def load_contacts():
+    if not contacts_file_name.endswith('.json'):
+        raise ValueError(f"file {contacts_file_name} is not a JSON file")
+    
     global contacts
-    with open(contacts_file_name, "r") as fh:
+    with open(contacts_file_name, "a+") as fh:
         contacts = json.load(fh)
 
 
 def save_contacts():
+    if len(contacts) == 0:
+        return
+    
     with open(contacts_file_name, "w") as fh:
         json.dump(contacts, fh, indent=4)
 
@@ -65,15 +70,29 @@ def show_all() -> str:
     return contacts_to_print
 
 
-def before_exit():
+def shutdown():
     save_contacts()
+    sys.exit(0)
 
 
-def on_startup():
+def init():
+    signal.signal(signal.SIGINT, handle_system_signal)
+    signal.signal(signal.SIGTERM, handle_system_signal)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--file', type=str,
+                        help='Path to the csv file with users data',
+                        default='./data/contacts.json')
+
+    args = parser.parse_args()
+
+    global contacts_file_name
+    contacts_file_name = args.file
+
     load_contacts()
 
 
-def command_handler(command: dict) -> str:
+def handle_command(command: dict) -> str:
     cmd = command['command']
 
     if cmd == "hello":
@@ -87,10 +106,10 @@ def command_handler(command: dict) -> str:
     elif cmd == "all":
         return show_all()
     else:
-        return f'Invalid command.'
+        return f'Invalid command: {cmd}'
 
 
-def command_parser(user_input: str):
+def parse_command(user_input: str) -> dict[str, str]:
     if user_input == '':
         return None
 
@@ -111,31 +130,19 @@ def command_parser(user_input: str):
 def main():
     while True:
         user_input = input("console bot >>> ")
-        command = command_parser(user_input)
+        command = parse_command(user_input)
         if command is None:
             print('No command was entered. Try again')
         elif command['command'] in ('exit', 'q', 'quit', 'close'):
-            before_exit()
             break
-        message = command_handler(command)
+        message = handle_command(command)
         if message:
             print(message)
 
     print("Good bye!")
+    shutdown()
 
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, system_signal_handler)
-    signal.signal(signal.SIGTERM, system_signal_handler)
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--file', type=str,
-                        help='Path to the csv file with users data',
-                        default='./data/contacts.json')
-
-    args = parser.parse_args()
-    contacts_file_name = args.file
-
-    on_startup()
-
+    init()
     main()
