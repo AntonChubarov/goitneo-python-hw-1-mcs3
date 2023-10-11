@@ -8,22 +8,23 @@ contacts_file_name: str = None
 contacts = {}
 
 
-def handle_system_signal(sig, frame):
+def handle_system_signal(sig, frame) -> None:
     _, _ = sig, frame
     print("\nTermination signal received. Shutting down...")
     shutdown()
 
 
-def load_contacts():
+def load_contacts() -> None:
     if not contacts_file_name.endswith(".json"):
         raise ValueError(f"file {contacts_file_name} is not a JSON file")
     
     global contacts
     with open(contacts_file_name, "a+") as fh:
+        fh.seek(0)
         contacts = json.load(fh)
 
 
-def save_contacts():
+def save_contacts() -> None:
     if len(contacts) == 0:
         return
     
@@ -58,21 +59,25 @@ def show_phone(name: str) -> str:
     return contacts[name]
 
 
-def show_all() -> str:
+def get_all() -> str:
     if len(contacts) == 0:
         return "You have no saved contacts yet"
     
-    contacts_to_print = ""
+    contacts_to_return = ""
 
     for name, phone in contacts.items():
-        contacts_to_print += name + " " + phone + "\n"
+        contacts_to_return += name + " " + phone + "\n"
 
-    return contacts_to_print
+    return contacts_to_return.rstrip()
 
 
 def shutdown():
-    save_contacts()
-    sys.exit(0)
+    try:
+        save_contacts()
+    except Exception as e:
+        print(f"Unable to save contacts: {e}")
+    finally:
+        sys.exit(0)
 
 
 def init():
@@ -81,18 +86,22 @@ def init():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", type=str,
-                        help="Path to the csv file with users data",
+                        help="Path to the json file with saved contacts",
                         default="./data/contacts.json")
 
     args = parser.parse_args()
 
     global contacts_file_name
     contacts_file_name = args.file
+    
+    try:
+        load_contacts()
+    except Exception as e:
+        print(f"Unable to load contacts file: {e}")
+        sys.exit(0)
 
-    load_contacts()
 
-
-def handle_command(command: dict) -> str:
+def handle_command(command: dict[str, str]) -> str:
     cmd = command["command"]
 
     if cmd == "hello":
@@ -104,12 +113,14 @@ def handle_command(command: dict) -> str:
     elif cmd == "phone":
         return show_phone(command["name"])
     elif cmd == "all":
-        return show_all()
+        return get_all()
     else:
         return f"Invalid command: {cmd}"
 
 
 def parse_command(user_input: str) -> dict[str, str]:
+    user_input = user_input.strip()
+    
     if user_input == "":
         return None
 
