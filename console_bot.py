@@ -15,7 +15,7 @@ def handle_system_signal(sig, frame):
 
 
 def load_contacts():
-    if not contacts_file_name.endswith('.json'):
+    if not contacts_file_name.endswith(".json"):
         raise ValueError(f"file {contacts_file_name} is not a JSON file")
     
     global contacts
@@ -32,7 +32,7 @@ def save_contacts():
 
 
 def greet() -> str:
-    return 'How can I help you?'
+    return "How can I help you?"
 
 
 def add_contact(name: str, phone: str) -> str:
@@ -80,9 +80,9 @@ def init():
     signal.signal(signal.SIGTERM, handle_system_signal)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--file', type=str,
-                        help='Path to the csv file with users data',
-                        default='./data/contacts.json')
+    parser.add_argument("--file", type=str,
+                        help="Path to the csv file with users data",
+                        default="./data/contacts.json")
 
     args = parser.parse_args()
 
@@ -93,30 +93,30 @@ def init():
 
 
 def handle_command(command: dict) -> str:
-    cmd = command['command']
+    cmd = command["command"]
 
     if cmd == "hello":
         return greet()
     elif cmd == "add":
-        return add_contact(command['name'], command['phone'])
+        return add_contact(command["name"], command["phone"])
     elif cmd == "change":
-        return change_contact(command['name'], command['phone'])
+        return change_contact(command["name"], command["phone"])
     elif cmd == "phone":
-        return show_phone(command['name'])
+        return show_phone(command["name"])
     elif cmd == "all":
         return show_all()
     else:
-        return f'Invalid command: {cmd}'
+        return f"Invalid command: {cmd}"
 
 
 def parse_command(user_input: str) -> dict[str, str]:
-    if user_input == '':
+    if user_input == "":
         return None
 
     command_components = user_input.split()
     command = command_components[0].lower()
-    name = ''
-    phone = ''
+    name = ""
+    phone = ""
 
     if len(command_components) > 1:
         name = command_components[1]
@@ -124,7 +124,7 @@ def parse_command(user_input: str) -> dict[str, str]:
     if len(command_components) > 2:
         phone = command_components[2]
 
-    return {'command': command, 'name': name, 'phone': phone}
+    return {"command": command, "name": name, "phone": phone}
 
 
 def main():
@@ -132,8 +132,8 @@ def main():
         user_input = input("console bot >>> ")
         command = parse_command(user_input)
         if command is None:
-            print('No command was entered. Try again')
-        elif command['command'] in ('exit', 'q', 'quit', 'close'):
+            print("No command was entered. Try again")
+        elif command["command"] in ("exit", "q", "quit", "close"):
             break
         message = handle_command(command)
         if message:
@@ -143,6 +143,6 @@ def main():
     shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     init()
     main()
