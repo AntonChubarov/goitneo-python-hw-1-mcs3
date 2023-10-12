@@ -4,8 +4,8 @@ import signal
 import sys
 
 
-contacts_file_name: str = None
-contacts = {}
+contacts_file_name: str = ""
+contacts: dict[str, str] = {}
 
 
 def handle_system_signal(sig, frame) -> None:
@@ -14,20 +14,42 @@ def handle_system_signal(sig, frame) -> None:
     shutdown()
 
 
+def validate_contacts() -> None:
+    if len(contacts) == 0:
+        return
+
+    if not isinstance(contacts, dict):
+        raise ValueError(f"structure of {contacts_file_name} is not a dictionary")
+
+    for name, phone in contacts.items():
+        if not isinstance(name, str):
+            raise ValueError(f"in {contacts_file_name} name {name} is not a string, but {type(name)}")
+        if not isinstance(phone, str):
+            raise ValueError(f"in {contacts_file_name} at name {name} phone {phone} is not a string, but {type(phone)}")
+
+
 def load_contacts() -> None:
+    if not contacts_file_name:
+        raise ValueError("file name is not specified (empty)")
+
     if not contacts_file_name.endswith(".json"):
         raise ValueError(f"file {contacts_file_name} is not a JSON file")
-    
+
     global contacts
     with open(contacts_file_name, "a+") as fh:
         fh.seek(0)
         contacts = json.load(fh)
 
+    validate_contacts()
+
 
 def save_contacts() -> None:
+    if not contacts_file_name:
+        raise ValueError("file name was not specified (empty)")
+
     if len(contacts) == 0:
         return
-    
+
     with open(contacts_file_name, "w") as fh:
         json.dump(contacts, fh, indent=4)
 
@@ -55,14 +77,14 @@ def change_contact(name: str, phone: str) -> str:
 def show_phone(name: str) -> str:
     if name not in contacts:
         return f"There is no {name} in contacts. Use command \"add\" to create"
-    
+
     return contacts[name]
 
 
 def get_all() -> str:
     if len(contacts) == 0:
         return "You have no saved contacts yet"
-    
+
     contacts_to_return = ""
 
     for name, phone in contacts.items():
@@ -93,7 +115,7 @@ def init():
 
     global contacts_file_name
     contacts_file_name = args.file
-    
+
     try:
         load_contacts()
     except Exception as e:
@@ -106,23 +128,23 @@ def handle_command(command: dict[str, str]) -> str:
 
     if cmd == "hello":
         return greet()
-    elif cmd == "add":
+    if cmd == "add":
         return add_contact(command["name"], command["phone"])
-    elif cmd == "change":
+    if cmd == "change":
         return change_contact(command["name"], command["phone"])
-    elif cmd == "phone":
+    if cmd == "phone":
         return show_phone(command["name"])
-    elif cmd == "all":
+    if cmd == "all":
         return get_all()
-    else:
-        return f"Invalid command: {cmd}"
+
+    return f"Invalid command: {cmd}"
 
 
 def parse_command(user_input: str) -> dict[str, str]:
     user_input = user_input.strip()
-    
+
     if user_input == "":
-        return None
+        return {}
 
     command_components = user_input.split()
     command = command_components[0].lower()

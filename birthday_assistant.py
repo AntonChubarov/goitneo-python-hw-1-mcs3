@@ -56,9 +56,8 @@ def load_users_from_csv_file(path: str) -> list[dict[str, datetime.date]]:
     with open(path, "r", encoding="utf-8") as fh:
         csv_reader = csv.DictReader(fh)
         if not set(EXPECTED_COLUMNS).issubset(set(csv_reader.fieldnames)):
-            msg = "file " + path
-            + "does not have the expected columns \"name\" and \"birthday\""
-            raise ValueError(msg)
+            raise csv.Error(f"""file {path} does not have the expected columns
+                            \"name\" and \"birthday\"""")
         row_number = 1
         for row in csv_reader:
             row_number += 1
@@ -102,17 +101,15 @@ def get_birthdays_per_week(
     users_to_congratulate: dict[str, list[str]] = {}
 
     for user in users:
-        name = user["name"]
-        birthday = user["birthday"].date()
-        birthday_this_year = birthday.replace(year=today.year)
-
-        delta_days = (birthday_this_year - today).days
+        birthday_this_year = user["birthday"].date().replace(year=today.year)
 
         days_to_period_start, days_to_period_end = 0, 7
         if today.strftime("%A") == "Monday":
             days_to_period_start, days_to_period_end = -2, 5
         elif today.strftime("%A") == "Sunday":
             days_to_period_start, days_to_period_end = -1, 6
+
+        delta_days = (birthday_this_year - today).days
 
         if days_to_period_start <= delta_days < days_to_period_end:
             day_name = birthday_this_year.strftime("%A")
@@ -123,7 +120,7 @@ def get_birthdays_per_week(
             if day_name not in users_to_congratulate:
                 users_to_congratulate[day_name] = []
 
-            users_to_congratulate[day_name].append(name)
+            users_to_congratulate[day_name].append(user["name"])
 
     birthday_days = list(users_to_congratulate.keys())
     sorted_days = [(datetime.datetime.today()+datetime.timedelta(days=i)).
@@ -157,15 +154,15 @@ def main():
     except FileNotFoundError:
         print(f"File {path} not found")
         sys.exit(0)
-    except csv.Error as e:
-        print(f"CSV error: {e}")
+    except csv.Error as csve:
+        print(f"CSV error: {csve}")
         sys.exit(0)
     except ValueError as ve:
         print(f"CSV structure validation failed: {ve}")
         sys.exit(0)
 
     users_to_congratulate = get_birthdays_per_week(users)
-    
+
     for name, users in users_to_congratulate.items():
         print(f"{name}: {users}")
 
