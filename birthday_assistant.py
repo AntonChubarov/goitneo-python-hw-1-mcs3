@@ -5,7 +5,7 @@ contains two keys: "name" and "birthday" where "birthday" is in the format
 "YYYY-MM-DD".
 
 Author: Anton Chubarov
-Date: October 11, 2023
+Date: October 12, 2023
 """
 
 import argparse
