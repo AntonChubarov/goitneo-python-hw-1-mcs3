@@ -56,8 +56,8 @@ def load_users_from_csv_file(path: str) -> list[dict[str, datetime.date]]:
     with open(path, "r", encoding="utf-8") as fh:
         csv_reader = csv.DictReader(fh)
         if not set(EXPECTED_COLUMNS).issubset(set(csv_reader.fieldnames)):
-            raise csv.Error(f"""file {path} does not have the expected columns
-                            \"name\" and \"birthday\"""")
+            raise csv.Error(f"file {path} does not have the expected columns"
+                            " \"name\" and \"birthday\"")
         row_number = 1
         for row in csv_reader:
             row_number += 1

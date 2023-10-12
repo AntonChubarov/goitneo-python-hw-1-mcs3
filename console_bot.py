@@ -19,13 +19,16 @@ def validate_contacts() -> None:
         return
 
     if not isinstance(contacts, dict):
-        raise ValueError(f"structure of {contacts_file_name} is not a dictionary")
+        raise ValueError(f"structure of {contacts_file_name} is not a "
+                         "dictionary")
 
     for name, phone in contacts.items():
         if not isinstance(name, str):
-            raise ValueError(f"in {contacts_file_name} name {name} is not a string, but {type(name)}")
+            raise ValueError(f"in {contacts_file_name} name {name} is not a "
+                             f"string, but {type(name)}")
         if not isinstance(phone, str):
-            raise ValueError(f"in {contacts_file_name} at name {name} phone {phone} is not a string, but {type(phone)}")
+            raise ValueError(f"in {contacts_file_name} at name {name} phone "
+                             f"{phone} is not a string, but {type(phone)}")
 
 
 def load_contacts() -> None:
@@ -161,12 +164,14 @@ def parse_command(user_input: str) -> dict[str, str]:
 
 
 def main():
+    print("Welcome to the assistant bot!")
+
     while True:
         user_input = input("console bot >>> ")
         command = parse_command(user_input)
         if command is None:
             print("No command was entered. Try again")
-        elif command["command"] in ("exit", "q", "quit", "close"):
+        elif command["command"] in ("exit", "q", "quit", "close", "good bye"):
             break
         message = handle_command(command)
         if message:
